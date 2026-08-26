@@ -2,6 +2,9 @@
 
 How `captions2doc` turns a video link into a Markdown paper and a PDF.
 
+See [output-format.md](output-format.md) for what the generated document looks
+like, and the [README](../README.md) to install and run it.
+
 The pipeline has three stages, and every stage has an offline path. Nothing
 leaves the machine unless you pass `--claude`.
 

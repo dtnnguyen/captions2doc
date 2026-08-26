@@ -15,46 +15,150 @@ captions2doc "https://www.youtube.com/watch?v=..."
 
 ## Install
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate             # Windows: .venv\Scripts\activate
+Python 3.10+ and pip are the only requirements; the app runs on Windows, macOS and
+Linux. Pick your platform below.
+
+Two ways to install:
+
+- **From a released wheel** - download the `.whl` from the [Releases](../../releases)
+  page. Nothing to clone. This is the normal way to *use* the app.
+- **From source** - clone the repo and install in editable mode. This is the way to
+  *work on* it.
+
+Both give you a `captions2doc` command. `pipx` is recommended for the wheel: it puts the
+app in its own isolated environment, keeps its dependencies away from your system
+Python, and fixes your `PATH` for you.
+
+### Windows
+
+From a released wheel, in PowerShell:
+
+```powershell
+py -m pip install --user pipx
+py -m pipx ensurepath
+py -m pipx install .\video_captions_to_doc-1.0.0-py3-none-any.whl
+```
+
+Open a **new** terminal after `ensurepath`, then check it:
+
+```powershell
+captions2doc --help
+```
+
+From source:
+
+```powershell
+git clone https://github.com/USER/REPO.git
+cd REPO
+py -m venv .venv
+.venv\Scripts\activate
 pip install -e .
 ```
 
-That puts the `captions2doc` command on your `PATH`:
+*If PowerShell says "running scripts is disabled on this system", allow it once with
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, or use `cmd`, where
+`.venv\Scripts\activate.bat` runs without that restriction.*
+
+*If `captions2doc` is "not recognized as the name of a cmdlet", your Python `Scripts\`
+folder is not on `PATH` - it is only added when **Add python.exe to PATH** was ticked
+during Python setup. `py -m pipx ensurepath` fixes it, and `py -m video_captions` works
+regardless.*
+
+### macOS
+
+From a released wheel:
+
+```bash
+brew install pipx
+pipx ensurepath
+pipx install ./video_captions_to_doc-1.0.0-py3-none-any.whl
+```
+
+Open a **new** terminal after `ensurepath`, then check it:
 
 ```bash
 captions2doc --help
 ```
 
-The command lives in `.venv/bin/`, so it is only on `PATH` while the virtualenv is
-active. Open a new terminal and you need `source .venv/bin/activate` again - or skip
-activation and call it by path, which always works:
+From source:
 
 ```bash
-./.venv/bin/captions2doc --help       # Windows: .venv\Scripts\captions2doc --help
-./.venv/bin/python -m video_captions  # equivalent, no entry point needed
+git clone https://github.com/USER/REPO.git
+cd REPO
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
 ```
 
-To install it once and have it available everywhere, without a virtualenv to activate:
+*Homebrew's Python is externally managed, so a plain `pip install` outside a virtualenv
+is refused. Use pipx or a venv, as above.*
+
+### Ubuntu / Debian
+
+From a released wheel:
 
 ```bash
-pipx install -e .
+sudo apt install pipx
+pipx ensurepath
+pipx install ./video_captions_to_doc-1.0.0-py3-none-any.whl
 ```
 
-All examples below assume an activated virtualenv.
-
-Runs on macOS, Linux and Windows - Python 3.10+ and pip are the only requirements.
-The optional extras need one external binary each: **ffmpeg** for transcription
-(`brew install ffmpeg`, `apt install ffmpeg`, or `winget install ffmpeg`), and
-**mermaid-cli** only if you want it to override the built-in diagram renderer.
-
-For videos that publish no captions, add local speech-to-text (large download, needed
-only for that case):
+Open a **new** shell after `ensurepath`, then check it:
 
 ```bash
-pip install -e '.[transcribe]'
+captions2doc --help
 ```
+
+From source:
+
+```bash
+git clone https://github.com/USER/REPO.git
+cd REPO
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+*On Ubuntu 23.04+ and Debian 12+ the system Python is externally managed, so
+`sudo pip install` is refused - that is what pipx and venvs are for.*
+
+*`pip install --user <wheel>` also works, but Ubuntu adds `~/.local/bin` to `PATH` only
+if that folder existed at login, so on a first install the command is "not found" until
+you log out and back in. `pipx ensurepath` avoids this.*
+
+### Running it without the command on PATH
+
+These always work, on every platform, whatever `PATH` says:
+
+```bash
+python3 -m video_captions --help      # Windows: py -m video_captions --help
+./.venv/bin/captions2doc --help       # from a source install, without activating
+```
+
+A source install's `captions2doc` lives in the virtualenv, so it is on `PATH` only while
+that virtualenv is active. Every example below assumes an activated virtualenv, or a
+pipx install.
+
+### Optional: local transcription
+
+Only needed for videos that publish no captions. It is a large download, and it needs
+**ffmpeg** on `PATH`:
+
+| Platform | ffmpeg |
+|---|---|
+| Windows | `winget install Gyan.FFmpeg` |
+| macOS | `brew install ffmpeg` |
+| Ubuntu / Debian | `sudo apt install ffmpeg` |
+
+Then add the extra, matching how you installed the app:
+
+```bash
+pip install -e '.[transcribe]'                        # source install
+pipx inject video-captions-to-doc faster-whisper      # pipx install
+```
+
+**mermaid-cli** is optional too, and only if you want it to override the built-in
+diagram renderer.
 
 ### Optional: rewriting with Claude
 
@@ -62,7 +166,12 @@ pip install -e '.[transcribe]'
 and is billed per use - the built-in path is the default and needs neither.
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...   # from console.anthropic.com
+export ANTHROPIC_API_KEY=sk-ant-...   # macOS / Linux, from console.anthropic.com
+captions2doc --claude "https://youtu.be/..."
+```
+
+```powershell
+$env:ANTHROPIC_API_KEY = "sk-ant-..."   # Windows PowerShell, this session only
 captions2doc --claude "https://youtu.be/..."
 ```
 
@@ -160,58 +269,13 @@ With Claude the summary is *abstractive* - the content is condensed and rewritte
 it reads as prose written for the purpose rather than as selected quotes. Both paths
 produce the same section structure.
 
-## Reference paper, not a transcript
+## The generated document
 
-The document reads as an informational paper about the subject, not a record of
-someone talking about it:
+The output is an informational paper, not a transcript: impersonal prose with the small
+talk removed, key terms in bold, a source link plus a per-topic jump link back into the
+video, and Mermaid diagrams where a picture carries the idea better than prose.
 
-- **No first or second person.** No "I", "we", "our", "you" - and no addressing the
-  reader.
-- **No small talk.** Greetings, introductions, thanks, sign-offs, promotion, "in this
-  video", "as we saw earlier", and sentences whose only job is announcing what comes
-  next are all removed.
-- **Straight to the point.** Declarative present tense, subject stated as fact:
-  *"The control plane computes routes"*, not *"Now let's look at how the control plane
-  computes routes"*.
-- **Key terms highlighted** in bold on first mention so the document can be skimmed,
-  plus a `## Key Terms` section at the end. In the PDF, highlighted terms are drawn in
-  the accent colour.
-
-By default this is done by `prose.py`, which applies an explicit
-rule table - drop conversational sentences, strip discourse markers ("So,", "Now,",
-"Basically,"), rewrite safe frames (*"we can add capacity"* -> *"it is possible to add
-capacity"*, *"let's say"* -> *"suppose"*, *"think of it like"* -> *"this is analogous
-to"*) - and drops anything still carrying a personal pronoun rather than inventing a
-paraphrase. With `--claude` the same result comes from rewriting instead.
-
-## Source links
-
-Every document points back at the video it came from:
-
-- a **Source** link under the title,
-- a **jump link on each topic** (`[Watch from 4:12](...&t=252s)`) so a section in your
-  notes takes you to that moment in the video,
-- a **Source** section at the end.
-
-Deep links are generated for YouTube (`&t=252s`) and Vimeo (`#t=252s`); other hosts get
-the plain link. When you convert a local caption file, the link is recovered from
-yt-dlp's `Title [VIDEOID].en.vtt` filename, or you can supply it with `--url`.
-
-## Diagrams
-
-Claude is asked to add a Mermaid diagram wherever a picture carries the idea better
-than prose - an architecture, a flow, a decision, a lifecycle, a topic hierarchy.
-
-In the Markdown these are plain ```` ```mermaid ```` blocks, so GitHub, VS Code,
-Obsidian and Claude render them natively. The PDF has no browser available, so
-`diagrams.py` parses the diagram and draws it as **native vector graphics** with
-ReportLab: layered layout, barycentre-ordered nodes to reduce edge crossings, rectangle
-/ rounded / stadium / diamond / circle shapes, solid and dashed edges, and edge labels.
-
-Supported forms: `flowchart TD`, `flowchart LR`, and `mindmap`. If
-[mermaid-cli](https://github.com/mermaid-js/mermaid-cli) (`mmdc`) is on `PATH` it is
-used instead and every diagram type works. Anything unsupported degrades to its source
-text in a code block rather than breaking the document.
+See **[docs/output-format.md](docs/output-format.md)** for the full rules.
 
 ## How it works
 
