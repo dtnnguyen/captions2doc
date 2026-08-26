@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "video-captions-to-doc"
+version = "1.0.0"
+description = "Turn a video's captions into a topic-organized Markdown document with diagrams, plus a matching PDF. Runs offline; AI is optional."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = ["captions", "subtitles", "transcript", "markdown", "pdf", "mermaid", "claude"]
+
+dependencies = [
+    "yt-dlp>=2024.1.1",
+    "anthropic>=1.0.0",
+    "reportlab>=4.0",
+]
+
+[project.optional-dependencies]
+# Local speech-to-text, for videos that publish no captions. Needs ffmpeg on PATH.
+transcribe = ["faster-whisper>=1.0"]
+mermaid = ["pillow>=10.0"]   # only needed when mermaid-cli (mmdc) is installed
+
+[project.scripts]
+captions2doc = "video_captions.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
