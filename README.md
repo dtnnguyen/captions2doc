@@ -233,3 +233,22 @@ caption-acquisition and fallback decision flows, and the cost model.
 ```bash
 python -m unittest discover -s tests
 ```
+
+## Releasing
+
+CI builds the wheel on every push, so packaging breakage shows up before a release.
+To publish one, bump `version` in `pyproject.toml`, then tag it:
+
+```bash
+git tag v1.0.1 && git push origin v1.0.1
+```
+
+The release workflow builds the wheel and sdist, verifies the tag matches the version
+in `pyproject.toml`, installs the wheel in a clean venv to check the `captions2doc`
+entry point works, and attaches both files to a GitHub Release. Users can then install
+without cloning:
+
+```bash
+pip install https://github.com/USER/REPO/releases/download/v1.0.1/video_captions_to_doc-1.0.1-py3-none-any.whl
+```
+
