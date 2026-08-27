@@ -26,7 +26,7 @@ MODEL_SIZES = ("tiny", "base", "small", "medium", "large-v3")
 
 INSTALL_HINT = (
     "No speech-to-text backend found. Install one with:\n"
-    "    pip install 'video-captions-to-doc[transcribe]'\n"
+    "    pip install 'captions2doc[transcribe]'\n"
     "(needs ffmpeg on PATH, which you already have if yt-dlp merges formats.)"
 )
 

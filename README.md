@@ -1,4 +1,4 @@
-# video-captions-to-doc
+# captions2doc
 
 Turn a video link into an informational reference paper: pull the captions, rewrite
 them as impersonal documentation organized by **topic**, highlight the key terms,
@@ -36,7 +36,7 @@ From a released wheel, in PowerShell:
 ```powershell
 py -m pip install --user pipx
 py -m pipx ensurepath
-py -m pipx install .\video_captions_to_doc-1.0.0-py3-none-any.whl
+py -m pipx install .\captions2doc-1.0.0-py3-none-any.whl
 ```
 
 Open a **new** terminal after `ensurepath`, then check it:
@@ -71,7 +71,7 @@ From a released wheel:
 ```bash
 brew install pipx
 pipx ensurepath
-pipx install ./video_captions_to_doc-1.0.0-py3-none-any.whl
+pipx install ./captions2doc-1.0.0-py3-none-any.whl
 ```
 
 Open a **new** terminal after `ensurepath`, then check it:
@@ -100,7 +100,7 @@ From a released wheel:
 ```bash
 sudo apt install pipx
 pipx ensurepath
-pipx install ./video_captions_to_doc-1.0.0-py3-none-any.whl
+pipx install ./captions2doc-1.0.0-py3-none-any.whl
 ```
 
 Open a **new** shell after `ensurepath`, then check it:
@@ -154,7 +154,7 @@ Then add the extra, matching how you installed the app:
 
 ```bash
 pip install -e '.[transcribe]'                        # source install
-pipx inject video-captions-to-doc faster-whisper      # pipx install
+pipx inject captions2doc faster-whisper      # pipx install
 ```
 
 **mermaid-cli** is optional too, and only if you want it to override the built-in
@@ -313,6 +313,6 @@ entry point works, and attaches both files to a GitHub Release. Users can then i
 without cloning:
 
 ```bash
-pip install https://github.com/USER/REPO/releases/download/v1.0.1/video_captions_to_doc-1.0.1-py3-none-any.whl
+pip install https://github.com/USER/REPO/releases/download/v1.0.1/captions2doc-1.0.1-py3-none-any.whl
 ```
 

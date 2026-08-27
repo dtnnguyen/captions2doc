@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "video-captions-to-doc"
+name = "captions2doc"
 version = "1.0.0"
 description = "Turn a video's captions into a topic-organized Markdown document with diagrams, plus a matching PDF. Runs offline; AI is optional."
 readme = "README.md"
