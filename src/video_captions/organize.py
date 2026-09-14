@@ -13,6 +13,20 @@ import sys
 from collections import Counter
 
 from .captions import Captions, fmt_ts, timestamp_url
+
+
+def source_ref(captions: Captions) -> str:
+    """How to cite where this document came from.
+
+    A link when the video URL is known; otherwise the caption or media file it
+    was built from, so a document converted from a local .vtt still records its
+    origin instead of silently omitting the section.
+    """
+    if captions.url:
+        return f"[{captions.title}]({captions.url})"
+    if captions.source:
+        return f"`{captions.source}`"
+    return ""
 from .prose import impersonal
 
 MODEL = "claude-opus-5"
@@ -499,10 +513,10 @@ def organize_heuristically(
             lines.append("")
             lines.extend(f"- **{_titlecase(t)}**" for t in key_terms[:8])
             lines.append("")
-        if captions.url:
+        if source_ref(captions):
             lines.append("## Source")
             lines.append("")
-            lines.append(f"[{captions.title}]({captions.url})")
+            lines.append(source_ref(captions))
         return "\n".join(lines).strip()
 
     takeaways: list[str] = []
@@ -560,10 +574,10 @@ def organize_heuristically(
         lines.extend(f"- **{_titlecase(t)}**" for t in key_terms[:10])
         lines.append("")
 
-    if captions.url:
+    if source_ref(captions):
         lines.append("## Source")
         lines.append("")
-        lines.append(f"[{captions.title}]({captions.url})")
+        lines.append(source_ref(captions))
         lines.append("")
     return "\n".join(lines).strip()
 
@@ -658,8 +672,8 @@ def build_markdown(
         meta.append(f"**Channel:** {captions.uploader}")
     if captions.duration:
         meta.append(f"**Duration:** {fmt_ts(captions.duration)}")
-    if captions.url:
-        meta.append(f"**Source:** [{captions.title}]({captions.url})")
+    if source_ref(captions):
+        meta.append(f"**Source:** {source_ref(captions)}")
     if meta:
         header.append("  \n".join(meta))
         header.append("")

@@ -29,6 +29,10 @@ class Captions:
     uploader: str
     duration: float
     cues: list[Cue]
+    # Where these captions came from when there is no URL: the caption file or
+    # media file they were read from. Recorded so a generated document always
+    # says what it was built from, even for a local .vtt with no video link.
+    source: str = ""
 
     @property
     def plain_text(self) -> str:
@@ -139,11 +143,13 @@ def _longest_overlap(prev: str, cur: str) -> int:
 
 
 def _safe_stem(title: str, max_len: int = 120) -> str:
-    name = "".join("-" if ch in r'<>:"/\\|?*' else ch for ch in title)
+    """Filename stem for a kept .vtt — underscores only, matching
+    cli.safe_filename. Keep the two in step."""
+    name = "".join("_" if ch in r'<>:"/\\|?*' else ch for ch in title)
     name = "".join(ch for ch in name if ch.isprintable())
-    name = re.sub(r"\s+", " ", name).strip(" .-_")
+    name = re.sub(r"[\s_-]+", "_", name).strip("_. ")
     if len(name) > max_len:
-        name = name[:max_len].rsplit(" ", 1)[0].strip()
+        name = name[:max_len].rsplit("_", 1)[0].strip("_. ")
     return name or "captions"
 
 
@@ -260,7 +266,8 @@ def fetch_from_file(
         vid = video_id_from_filename(path)
         url = f"https://www.youtube.com/watch?v={vid}" if vid else ""
     return Captions(
-        title=title, url=url, uploader="", duration=cues[-1].end, cues=cues
+        title=title, url=url, uploader="", duration=cues[-1].end, cues=cues,
+        source=os.path.basename(path),
     )
 
 
@@ -283,6 +290,7 @@ def fetch_from_media(
         uploader="",
         duration=cues[-1].end,
         cues=cues,
+        source=os.path.basename(path),
     )
 
 

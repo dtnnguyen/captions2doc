@@ -211,6 +211,16 @@ output/  generated documents (*.md, *.pdf, optional *.transcript.txt)
 Both default to `./input` and `./output` relative to wherever you run the command, and
 both can be pointed elsewhere with `--indir` / `--outdir`.
 
+**Filenames carry no spaces.** The video title becomes the stem with `_` as the single
+separator — spaces, hyphens already in the title, and characters Windows forbids all
+collapse to one underscore, so a generated path never needs quoting:
+
+```
+"Control Plane vs Data Plane: The Network Layer Explained"
+  -> Control_Plane_vs_Data_Plane_The_Network_Layer_Explained.en.vtt   (input/)
+  -> Control_Plane_vs_Data_Plane_The_Network_Layer_Explained.md       (output/)
+```
+
 ## Usage
 
 ```bash
@@ -292,11 +302,92 @@ flowchart LR
 See **[docs/architecture.md](docs/architecture.md)** for the module table, the
 caption-acquisition and fallback decision flows, and the cost model.
 
-## Tests
+## Testing it locally
+
+### Set up once
+
+From a clone, in the project folder:
 
 ```bash
-python -m unittest discover -s tests
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -e ".[transcribe]"     # drop [transcribe] to skip Whisper
 ```
+
+`-e` is an **editable** install: `src/` is used directly, so edits take effect with no
+reinstall, and both `captions2doc` and `import video_captions` resolve.
+
+> ⚠️ **A virtualenv cannot be moved or renamed.** Its scripts hard-code absolute paths,
+> so renaming the project folder leaves `.venv/bin/captions2doc` pointing at a path that
+> no longer exists — it fails with **`bad interpreter`**, and `import video_captions`
+> fails with **`ModuleNotFoundError`** even though the code is right there. Fix it with
+> `pip install -e .` again, or delete `.venv` and rebuild it.
+
+### Run the tests
+
+```bash
+python -m unittest discover -s tests      # 44 tests
+```
+
+⚠️ Needs the editable install above, or the package is not importable. Without it, use
+`PYTHONPATH=src python -m unittest discover -s tests`. There is no `pytest` dependency —
+the suite is plain `unittest`.
+
+### Run it on the sample captions
+
+The repo ships caption files in `input/`, so this works with no network:
+
+```bash
+captions2doc                              # convert everything in ./input
+captions2doc --from-vtt tradewar.en.vtt   # one file; bare names resolve in input/
+captions2doc --no-pdf                     # Markdown only - much faster to iterate
+```
+
+### Run it on a link
+
+```bash
+captions2doc "https://www.youtube.com/watch?v=UV6TFPDCMOY"
+```
+
+⚠️ **Quote the URL.** YouTube links contain `?` and `&`, which the shell would otherwise
+interpret.
+
+The captions land in `input/`, the documents in `output/`. Re-running the same link is
+free — the `.vtt` is already there, so `--from-vtt <name>.en.vtt` skips the download.
+
+### Keep test runs out of your real folders
+
+Point both folders somewhere disposable:
+
+```bash
+captions2doc "https://www.youtube.com/watch?v=UV6TFPDCMOY" \
+  --indir /tmp/c2d/in --outdir /tmp/c2d/out --no-pdf
+```
+
+```
+-> Fetching captions for https://www.youtube.com/watch?v=UV6TFPDCMOY
+   saved captions to /tmp/c2d/in/Control_Plane_vs_Data_Plane_The_Network_Layer_Explained.en.vtt
+   'Control Plane vs Data Plane: The Network Layer Explained' - 376 cues, 2,162 words
+-> Organizing into topics
+   wrote /tmp/c2d/out/Control_Plane_vs_Data_Plane_The_Network_Layer_Explained.md
+```
+
+### Flags worth knowing while testing
+
+| Flag | Why |
+|------|-----|
+| `--no-pdf` | Markdown only — the fastest loop |
+| `-s` | Short briefing note instead of the full topic paper |
+| `--title TEXT` | Force the title, and so the filename |
+| `--url LINK` | Set the source link by hand for a local caption file |
+| `--no-keep-vtt` | Do not save the download into `input/` |
+| `--save-transcript` | Also write the raw timestamped transcript |
+| `--no-transcribe` | Fail fast instead of falling back to Whisper |
+| `--claude` | Rewrite with Claude — ⚠️ needs `ANTHROPIC_API_KEY`, **billed per use** |
+
+💡 A video with no published captions falls back to transcribing the audio locally, which
+is slow and needs **ffmpeg** on `PATH`. Use `--no-transcribe` while testing so that case
+fails immediately instead of running for minutes.
 
 ## Releasing
 

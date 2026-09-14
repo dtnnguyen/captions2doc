@@ -189,21 +189,33 @@ class TestSourceLinks(unittest.TestCase):
 
 
 class TestFilenames(unittest.TestCase):
+    def test_spaces_become_underscores(self):
+        self.assertEqual(safe_filename("Control Plane vs Data Plane"),
+                         "Control_Plane_vs_Data_Plane")
+
+    def test_separator_runs_collapse(self):
+        self.assertEqual(safe_filename("A  -  B"), "A_B")
+        self.assertNotIn(" ", safe_filename("  padded   title  "))
+
+    def test_hyphens_in_the_title_become_underscores(self):
+        self.assertEqual(safe_filename("Well-known Thing"), "Well_known_Thing")
+        self.assertNotIn("-", safe_filename("A - B - C"))
+
     def test_characters_illegal_on_windows_are_replaced(self):
-        self.assertEqual(safe_filename('A/B\\C*D?E:F|G'), "A-B-C-D-E-F-G")
+        self.assertEqual(safe_filename('A/B\\C*D?E:F|G'), "A_B_C_D_E_F_G")
 
     def test_windows_reserved_device_names_are_escaped(self):
-        self.assertEqual(safe_filename("CON"), "CON-video")
-        self.assertEqual(safe_filename("nul.mp4"), "nul.mp4-video")
+        self.assertEqual(safe_filename("CON"), "CON_video")
+        self.assertEqual(safe_filename("nul.mp4"), "nul.mp4_video")
 
     def test_trailing_dots_and_spaces_are_trimmed(self):
-        self.assertEqual(safe_filename("Ends with dot. "), "Ends with dot")
+        self.assertEqual(safe_filename("Ends with dot. "), "Ends_with_dot")
 
     def test_unicode_titles_survive(self):
-        self.assertEqual(safe_filename("Ünïcödé Tïtlé"), "Ünïcödé Tïtlé")
+        self.assertEqual(safe_filename("Ünïcödé Tïtlé"), "Ünïcödé_Tïtlé")
 
     def test_empty_title_falls_back(self):
-        self.assertEqual(safe_filename("///"), "video-captions")
+        self.assertEqual(safe_filename("///"), "video_captions")
 
 
 class TestTextUtil(unittest.TestCase):

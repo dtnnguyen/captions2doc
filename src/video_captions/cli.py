@@ -78,17 +78,26 @@ def ensure_dir(path: str, label: str) -> None:
 
 
 def safe_filename(title: str, max_len: int = 120) -> str:
+    """Turn a video title into a filename stem with no spaces.
+
+    Underscore is the one separator: spaces, hyphens already in the title, and
+    characters Windows forbids all become `_`, and runs collapse to a single
+    one. A generated path then never needs quoting in a shell, a URL or a
+    Makefile, and never mixes two separators in the same name.
+    """
     name = unicodedata.normalize("NFC", title)
-    name = "".join("-" if ch in INVALID else ch for ch in name)
+    name = "".join("_" if ch in INVALID else ch for ch in name)
     name = "".join(ch for ch in name if ch.isprintable())
-    name = re.sub(r"\s+", " ", name).strip(" .-_")
     name = "".join(ch for ch in name if ord(ch) >= 32)   # control chars
+    name = re.sub(r"[\s_-]+", "_", name)                 # one separator, always
+    name = name.strip("_. ")
     if len(name) > max_len:
-        name = name[:max_len].rsplit(" ", 1)[0].strip()
+        # Cut at a separator so the stem does not end mid-word.
+        name = name[:max_len].rsplit("_", 1)[0].strip("_. ")
     name = name.rstrip(" .")            # Windows drops trailing dots and spaces
     if name.upper() in RESERVED or name.upper().split(".")[0] in RESERVED:
-        name = f"{name}-video"
-    return name or "video-captions"
+        name = f"{name}_video"
+    return name or "video_captions"
 
 
 def resolve_input(path: str, indir: str) -> str:
@@ -125,7 +134,7 @@ def write_documents(captions: Captions, args: argparse.Namespace) -> None:
     ensure_dir(args.outdir, "output")
     stem = safe_filename(captions.title)
     if args.summary:
-        stem += " (summary)"
+        stem += "_summary"
 
     md_path = os.path.join(args.outdir, f"{stem}.md")
     with open(md_path, "w", encoding="utf-8") as fh:
