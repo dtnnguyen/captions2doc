@@ -31,6 +31,23 @@ flowchart LR
 | `pdf.py` | Renders the Markdown: headings, bullet/numbered lists, pipe tables, fenced code, blockquotes, rules, inline bold/italic/code/links, diagrams, page numbers, running footer. |
 | `textutil.py` | Folds fullwidth punctuation, smart quotes and emoji into what the PDF core fonts can actually draw. |
 
+## Layout
+
+```
+src/video_captions/      the package (modules above); entry point video_captions.cli:main
+input/                   caption sources (*.vtt, *.srt), including downloaded captions (ignored by git)
+output/                  generated *.md / *.pdf / *.transcript.txt (ignored by git)
+docs/
+  architecture.md        this file
+  output-format.md       rules for the generated document
+  specs.md               the app's goal and requirements (input, output, document rules)
+tests/test_pipeline.py   plain unittest suite, no pytest
+.github/workflows/
+  ci.yml                 tests and a wheel build on every push
+  release.yml            on a v* tag: build, check the version, smoke-test, publish a Release
+pyproject.toml           package metadata, dependencies and the [transcribe] / [mermaid] extras
+```
+
 ## Stage 1 — where the captions come from
 
 `cli.main` accepts exactly one of a URL, `--from-vtt`, or `--from-media`; with
@@ -160,3 +177,21 @@ rendering — is local compute and costs nothing.
 document is about to be written, so an aborted run leaves no empty folder
 behind. Both go through `ensure_dir`, which reports a path conflict in words
 rather than leaking an errno.
+
+## Design trade-offs
+
+`captions2doc` deliberately favours **fast to deploy and simple to update** over a heavier
+design: one `pip` / `pipx` install, offline by default, and every optional piece degrades
+gracefully instead of being required.
+
+| Choice | What it buys | What it gives up |
+|---|---|---|
+| Offline extractive organizer by default; Claude only with `--claude` | Free, private, no API key; works with no network once captions are saved | Bullets are real sentences selected from the transcript, not prose rewritten for the purpose |
+| `yt-dlp` for links and captions | Any site yt-dlp supports, with no API keys or scraping code of our own | Relies on yt-dlp keeping up with site changes; when a site changes, update yt-dlp |
+| Published captions first, Whisper only as a fallback | Fast and free for most videos | Auto-generated captions can be poor; `--transcribe` trades speed for accuracy |
+| Built-in Mermaid → ReportLab renderer instead of requiring mermaid-cli | No Node.js or headless browser to install | Only flowchart TD/LR and mindmap are drawn; other diagram types appear as source in a code block |
+| ReportLab with the PDF core fonts | Pure Python and cross-platform; no LaTeX or HTML-to-PDF engine | Emoji, smart quotes and fullwidth punctuation are folded to plain equivalents by `textutil.py` |
+| One Claude request per run | Predictable cost, estimated before it is sent | No per-section refinement or retry; on any failure it falls back to the offline organizer |
+| Caption files saved in `input/` as the cache | Reruns are free, and captions can be hand-edited before converting | `input/` grows with every new link; `--no-keep-vtt` skips saving, or delete old files by hand |
+
+These are easy to revisit one at a time if a limit starts to hurt.

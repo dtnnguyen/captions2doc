@@ -333,13 +333,15 @@ python -m unittest discover -s tests      # 44 tests
 `PYTHONPATH=src python -m unittest discover -s tests`. There is no `pytest` dependency —
 the suite is plain `unittest`.
 
-### Run it on the sample captions
+### Run it on saved captions
 
-The repo ships caption files in `input/`, so this works with no network:
+`input/` is not tracked by git, so a fresh clone starts with it empty. Fetch one link first
+(see below) or drop your own `.vtt` / `.srt` files in. Once a caption file is in `input/`,
+these work with no network:
 
 ```bash
 captions2doc                              # convert everything in ./input
-captions2doc --from-vtt tradewar.en.vtt   # one file; bare names resolve in input/
+captions2doc --from-vtt <name>.en.vtt     # one file; bare names resolve in input/
 captions2doc --no-pdf                     # Markdown only - much faster to iterate
 ```
 
