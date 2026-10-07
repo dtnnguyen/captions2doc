@@ -13,6 +13,11 @@ a dependency: take the Markdown and run your own analysis on it however you like
 captions2doc "https://www.youtube.com/watch?v=..."
 ```
 
+## Demo video
+
+https://github.com/user-attachments/assets/890aa1fa-536d-4add-a431-f5486760c0fc
+
+
 ## Install
 
 Python 3.10+ and pip are the only requirements; the app runs on Windows, macOS and
